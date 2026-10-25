@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مصروفي</title>
+<style>
+:root{
+  --ink:#1b2b27; --muted:#5d716b; --bg:#edf1ee; --panel:#fbfcfb; --line:#d3ddd8;
+  --brand:#1f5c4d; --brand-ink:#ffffff; --gold:#d99a00; --danger:#c0392b; --danger-bg:#fbe9e6; --ok-bg:#e3f1ec;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --ink:#e8f0ed; --muted:#9db3ab; --bg:#121c19; --panel:#1a2824; --line:#2c3f39;
+    --brand:#4fb89c; --brand-ink:#0d1a16; --gold:#f0b429; --danger:#ff7b6b; --danger-bg:#3a1f1b; --ok-bg:#1e3a32; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI","Noto Sans Arabic",Tahoma,system-ui,sans-serif;line-height:1.6;font-size:16px}
+.wrap{max-width:640px;margin:0 auto;padding:16px 14px 60px}
+h1{font-size:20px;margin:6px 0 14px;font-weight:700}
+h2{font-size:17px;margin:0 0 10px;font-weight:700}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+label.f{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+input,select,button{font:inherit;color:inherit}
+input[type=number],input[type=text],input[type=date],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);min-height:42px}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1}
+.row>.fit{flex:0 0 auto}
+.btn{background:var(--brand);color:var(--brand-ink);border:0;border-radius:8px;padding:9px 16px;min-height:42px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:400}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 8px;min-height:36px}
+.x:hover{color:var(--danger)}
+
+/* the remaining number */
+.hero{padding:18px 16px}
+.hero .lbl{font-size:14px;color:var(--muted)}
+.hero .big{font-size:46px;font-weight:800;line-height:1.15;color:var(--brand);font-variant-numeric:tabular-nums}
+.hero .big small{font-size:18px;font-weight:600;margin-inline-start:6px;color:var(--muted)}
+.hero.low .big{color:var(--danger)}
+.hero .sub{font-size:14px;color:var(--muted);margin-top:2px}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:12px}
+.bar>i{display:block;height:100%;background:var(--brand);border-radius:6px;transition:width .3s}
+.bar.over>i{background:var(--danger)}
+.alert{display:none;margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--danger-bg);color:var(--danger);font-weight:700}
+.alert.show{display:block}
+
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.note.bad{color:var(--danger);font-weight:700}
+
+.item{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .t{flex:1;min-width:0}
+.item .t div:first-child{overflow-wrap:anywhere}
+.item .s{font-size:12.5px;color:var(--muted)}
+.item .amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item input[type=checkbox]{width:24px;height:24px;accent-color:var(--brand);flex:0 0 24px}
+.item.done .t div:first-child{text-decoration:line-through;color:var(--muted)}
+.chip{display:inline-block;font-size:12px;padding:1px 9px;border-radius:20px;border:1px solid var(--line);margin-inline-start:6px;vertical-align:middle}
+.chip.high{background:var(--ok-bg);color:var(--brand);border-color:transparent;font-weight:700}
+.empty{color:var(--muted);font-size:14px;padding:6px 0}
+.thr{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.thr input{width:110px;min-height:38px;padding:6px 8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>مصروفي</h1>
+
+  <section class="hero" id="hero">
+    <div class="lbl">المتبقي من المرتب</div>
+    <div class="big"><span id="remain">0</span><small>ج.م</small></div>
+    <div class="sub" id="heroSub"></div>
+    <div class="bar" id="bar"><i style="width:0%"></i></div>
+    <div class="alert" id="alert"></div>
+  </section>
+
+  <section>
+    <h2>المرتب</h2>
+    <div class="row">
+      <div>
+        <label class="f" for="salary">مرتب الشهر ده</label>
+        <input type="number" id="salary" inputmode="decimal" min="0" placeholder="مثلاً 8000">
+      </div>
+      <div class="fit"><button class="btn" id="saveSalary">حفظ</button></div>
+    </div>
+    <div class="thr" style="margin-top:10px">
+      <span>نبّهني لما المتبقي يبقى أقل من</span>
+      <input type="number" id="thr" inputmode="decimal" min="0">
+      <span>ج.م</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>سجّلي مصروف</h2>
+    <div class="row">
+      <div><label class="f" for="eAmt">المبلغ</label><input type="number" id="eAmt" inputmode="decimal" min="0" placeholder="0"></div>
+      <div><label class="f" for="eDate">التاريخ</label><input type="date" id="eDate"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div><label class="f" for="eNote">على إيه؟ (اختياري)</label><input type="text" id="eNote" placeholder="مثلاً خضار"></div>
+      <div class="fit"><button class="btn" id="addExp">خصم</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Wish list</h2>
+    <div class="row">
+      <div><label class="f" for="wName">عايزة تجيبي إيه؟</label><input type="text" id="wName" placeholder="مثلاً شنطة"></div>
+      <div style="flex:0 0 100px"><label class="f" for="wPrice">السعر</label><input type="number" id="wPrice" inputmode="decimal" min="0" placeholder="0"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label class="f" for="wPrio">الأولوية</label>
+        <select id="wPrio"><option value="high">مهم</option><option value="low">مش مهم أوي</option></select>
+      </div>
+      <div class="fit"><button class="btn" id="addWish">إضافة</button></div>
+    </div>
+    <div id="wishes" style="margin-top:10px"></div>
+    <div class="note">لما تعلّمي على حاجة إنك جبتيها، سعرها بيتخصم من المتبقي. ولو شلتي العلامة بيرجع.</div>
+  </section>
+
+  <section>
+    <h2>آخر المصاريف</h2>
+    <div id="exps"></div>
+  </section>
+
+  <div style="text-align:center"><button class="btn ghost" id="reset">مسح كل البيانات</button></div>
+</div>
+
+<script>
+const KEY = 'masrofy-state';
+const uid = () => Math.random().toString(36).slice(2, 9);
+const today = () => new Date().toISOString().slice(0, 10);
+const fmt = n => Math.round(n * 100) / 100 === Math.round(n) ? Math.round(n).toLocaleString('en-US') : (Math.round(n * 100) / 100).toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = id => document.getElementById(id);
+
+const defaults = () => ({
+  salary: 0, threshold: 1000,
+  expenses: [], wishes: []
+});
+let S = defaults();
+
+async function load() {
+  try {
+    const r = await window.storage.get(KEY);
+    if (r && r.value) S = Object.assign(defaults(), JSON.parse(r.value));
+  } catch (e) { /* first run or storage unavailable */ }
+}
+async function save() {
+  try { await window.storage.set(KEY, JSON.stringify(S)); } catch (e) { /* keep working in memory */ }
+}
+
+const spentTotal = () => S.expenses.reduce((a, e) => a + e.amt, 0);
+const remaining = () => S.salary - spentTotal();
+
+function render() {
+  const rem = remaining(), spent = spentTotal();
+  $('remain').textContent = fmt(rem);
+  $('heroSub').textContent = S.salary > 0
+    ? 'مرتب ' + fmt(S.salary) + ' ج.م، صرفتي ' + fmt(spent) + ' ج.م'
+    : 'اكتبي المرتب الأول عشان نبدأ';
+  const pctUsed = S.salary > 0 ? Math.min(100, Math.max(0, spent / S.salary * 100)) : 0;
+  $('bar').firstElementChild.style.width = pctUsed + '%';
+  $('bar').classList.toggle('over', rem < 0);
+
+  const low = S.salary > 0 && rem < S.threshold;
+  $('hero').classList.toggle('low', low);
+  const al = $('alert');
+  al.classList.toggle('show', low);
+  al.textContent = rem < 0
+    ? 'عدّيتي المرتب بـ ' + fmt(-rem) + ' ج.م'
+    : 'انتبهي، المتبقي أقل من ' + fmt(S.threshold) + ' ج.م';
+
+  if (document.activeElement !== $('salary')) $('salary').value = S.salary || '';
+  if (document.activeElement !== $('thr')) $('thr').value = S.threshold;
+
+  // wishes: important first, bought last
+  const order = w => (w.done ? 2 : 0) + (w.prio === 'high' ? 0 : 1);
+  const ws = [...S.wishes].sort((a, b) => order(a) - order(b));
+  $('wishes').innerHTML = ws.length ? ws.map(w =>
+    '<div class="item' + (w.done ? ' done' : '') + '">' +
+      '<input type="checkbox" ' + (w.done ? 'checked ' : '') + 'data-wish="' + w.id + '" aria-label="اتجابت">' +
+      '<div class="t"><div>' + esc(w.name) +
+        '<span class="chip ' + w.prio + '">' + (w.prio === 'high' ? 'مهم' : 'مش مهم أوي') + '</span></div>' +
+        (w.done ? '<div class="s">اتجابت</div>' : '') + '</div>' +
+      (w.price > 0 ? '<div class="amt">' + fmt(w.price) + '</div>' : '') +
+      '<button class="x" data-del-wish="' + w.id + '" aria-label="حذف">✕</button>' +
+    '</div>').join('') : '<div class="empty">لسه مفيش حاجات في القايمة</div>';
+
+  // expenses
+  const ex = [...S.expenses].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
+  $('exps').innerHTML = ex.length ? ex.map(e =>
+    '<div class="item"><div class="t"><div>' + esc(e.note || 'مصروف') + '</div>' +
+    '<div class="s">' + e.date + '</div></div>' +
+    '<div class="amt">−' + fmt(e.amt) + '</div>' +
+    '<button class="x" data-del-exp="' + e.id + '" aria-label="حذف">✕</button></div>').join('')
+    : '<div class="empty">لسه مفيش مصاريف</div>';
+}
+
+function commit() { save(); render(); }
+
+$('saveSalary').onclick = () => { S.salary = Math.max(0, parseFloat($('salary').value) || 0); commit(); };
+$('salary').onkeydown = e => { if (e.key === 'Enter') $('saveSalary').click(); };
+$('thr').onchange = () => { S.threshold = Math.max(0, parseFloat($('thr').value) || 0); commit(); };
+
+$('addExp').onclick = () => {
+  const amt = parseFloat($('eAmt').value);
+  if (!(amt > 0)) { $('eAmt').focus(); return; }
+  S.expenses.push({id: uid(), amt, note: $('eNote').value.trim(), date: $('eDate').value || today()});
+  $('eAmt').value = ''; $('eNote').value = ''; $('eDate').value = today(); commit();
+};
+$('eAmt').onkeydown = $('eNote').onkeydown = e => { if (e.key === 'Enter') $('addExp').click(); };
+
+$('addWish').onclick = () => {
+  const name = $('wName').value.trim(); if (!name) { $('wName').focus(); return; }
+  S.wishes.push({id: uid(), name, price: Math.max(0, parseFloat($('wPrice').value) || 0), prio: $('wPrio').value, done: false});
+  $('wName').value = ''; $('wPrice').value = ''; commit();
+};
+$('wName').onkeydown = e => { if (e.key === 'Enter') $('addWish').click(); };
+
+$('wishes').addEventListener('change', e => {
+  const id = e.target.dataset.wish; if (!id) return;
+  const w = S.wishes.find(x => x.id === id); if (!w) return;
+  w.done = e.target.checked;
+  S.expenses = S.expenses.filter(x => x.wishId !== id);
+  if (w.done && w.price > 0) {
+    S.expenses.push({id: uid(), amt: w.price, note: w.name, date: today(), wishId: id});
+  }
+  commit();
+});
+$('wishes').addEventListener('click', e => {
+  const id = e.target.dataset.delWish; if (!id) return;
+  S.wishes = S.wishes.filter(w => w.id !== id);
+  S.expenses = S.expenses.filter(x => x.wishId !== id);
+  commit();
+});
+
+$('exps').addEventListener('click', e => {
+  const id = e.target.dataset.delExp; if (!id) return;
+  const ex = S.expenses.find(x => x.id === id);
+  if (ex && ex.wishId) { const w = S.wishes.find(x => x.id === ex.wishId); if (w) w.done = false; }
+  S.expenses = S.expenses.filter(x => x.id !== id); commit();
+});
+
+let armed = false;
+$('reset').onclick = () => {
+  if (!armed) { armed = true; $('reset').textContent = 'اضغطي تاني للتأكيد'; setTimeout(() => { armed = false; $('reset').textContent = 'مسح كل البيانات'; }, 3000); return; }
+  S = defaults(); armed = false; $('reset').textContent = 'مسح كل البيانات'; commit();
+};
+
+$('eDate').value = today();
+load().then(render);
+</script>
+</body>
+</html>
